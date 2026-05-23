@@ -1,24 +1,20 @@
-# VHLIGHTING Sales
+# VHLIGHTING Sales - Fixed Supabase Build
 
-## 1. Tạo database Supabase
-Mở Supabase > SQL Editor > New Query, dán toàn bộ nội dung file `supabase.sql`, rồi bấm Run.
+Đã dán trực tiếp đúng Supabase Project URL:
 
-## 2. Lấy khóa kết nối
-Supabase > Project Settings > API:
-- Project URL
-- anon public key
+https://jrkmhalznaxsskazyggt.supabase.co
 
-## 3. Cấu hình Vercel Environment Variables
-Trong Vercel Project > Settings > Environment Variables:
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
+và Publishable key vào `src/App.jsx`.
 
-## 4. Deploy
-Upload project này lên GitHub, sau đó Import Project trong Vercel.
-Framework: Vite
-Build command: npm run build
-Output directory: dist
+## Cách upload lại
 
-## 5. Chạy local nếu cần
-npm install
-npm run dev
+1. Giải nén file zip.
+2. Vào GitHub repo cũ.
+3. Xóa hoặc ghi đè toàn bộ file cũ bằng bộ file này.
+4. Commit changes.
+5. Vercel sẽ tự deploy lại.
+
+## Nếu Supabase vẫn không online
+
+Vào Supabase > SQL Editor, chạy lại file `supabase.sql`.
+Sau đó mở web và bấm Ctrl + F5.

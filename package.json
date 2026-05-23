@@ -10,8 +10,7 @@
     "react": "latest",
     "react-dom": "latest",
     "@supabase/supabase-js": "latest",
-    "lucide-react": "latest",
-    "framer-motion": "latest"
+    "lucide-react": "latest"
   },
   "devDependencies": {}
 }
