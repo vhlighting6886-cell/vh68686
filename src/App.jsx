@@ -68,9 +68,50 @@ export default function App() {
   const total = Math.max(0, subtotal - Number(discount || 0) + Number(shipping || 0))
   const debt = Math.max(0, total - Number(paid || 0))
 
+  const customerKeyword = `${customer.name} ${customer.phone}`.trim().toLowerCase()
+  const customerSuggestions = customerKeyword.length >= 2
+    ? customers
+        .filter((c) => `${c.name || ''} ${c.phone || ''}`.toLowerCase().includes(customerKeyword))
+        .slice(0, 6)
+    : []
+
+  const productKeyword = productCode.trim().toLowerCase()
+  const productSuggestions = productKeyword.length >= 1
+    ? products
+        .filter((p) => `${p.code || ''} ${p.name || ''} ${p.group_code || ''}`.toLowerCase().includes(productKeyword))
+        .slice(0, 8)
+    : []
+
+  const groupSuggestions = productKeyword.length >= 1
+    ? groups
+        .filter((g) => `${g.code || ''} ${g.name || ''}`.toLowerCase().includes(productKeyword))
+        .slice(0, 5)
+    : []
+
+
   function show(text) {
     setNotice(text)
     window.setTimeout(() => setNotice(''), 3500)
+  }
+
+  function selectCustomerSuggestion(selected) {
+    setCustomer({
+      name: selected.name || '',
+      phone: selected.phone || '',
+      address: selected.address || '',
+      note: selected.note || '',
+    })
+    show('Đã lấy thông tin khách hàng')
+  }
+
+  function selectProductSuggestion(product) {
+    setProductCode(product.code)
+    show(`Đã chọn sản phẩm ${product.name}`)
+  }
+
+  function selectGroupSuggestion(group) {
+    setProductCode(group.code)
+    show(`Đã chọn nhóm ${group.code}`)
   }
 
   useEffect(() => {
@@ -169,9 +210,6 @@ export default function App() {
       const groupProducts = products.filter((p) => (p.group_code || '').toLowerCase() === group.code.toLowerCase())
       if (!groupProducts.length) return show('Nhóm này chưa có sản phẩm')
 
-      const notEnough = groupProducts.find((p) => Number(p.stock || 0) < quantity)
-      if (notEnough) return show(`Sản phẩm ${notEnough.code} không đủ tồn kho`)
-
       setCart((old) => {
         let next = [...old]
         groupProducts.forEach((product) => {
@@ -200,7 +238,6 @@ export default function App() {
     }
 
     if (!matched) return show('Không tìm thấy mã, tên hoặc nhóm sản phẩm')
-    if (Number(matched.stock || 0) < quantity) return show('Tồn kho không đủ')
 
     setCart((old) => {
       const exists = old.find((item) => item.code === matched.code)
@@ -571,12 +608,13 @@ export default function App() {
   }
 
   async function addProduct() {
-    if (!newProduct.code || !newProduct.name) return show('Nhập mã và tên sản phẩm')
-    if (products.some((p) => p.code.toLowerCase() === newProduct.code.toLowerCase())) return show('Mã sản phẩm đã tồn tại')
+    if (!newProduct.name) return show('Nhập tên sản phẩm')
+    const autoCode = (newProduct.code || `${newProduct.group_code || 'sp'}-${newProduct.name}`).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    if (products.some((p) => p.code.toLowerCase() === autoCode.toLowerCase())) return show('Mã sản phẩm đã tồn tại')
 
     const row = {
-      id: newProduct.code,
-      code: newProduct.code,
+      id: autoCode,
+      code: autoCode,
       name: newProduct.name,
       unit: newProduct.unit || 'cái',
       price: Number(newProduct.price || 0),
@@ -642,6 +680,18 @@ export default function App() {
   const filteredProducts = products.filter((p) => `${p.code} ${p.name}`.toLowerCase().includes(search.toLowerCase()))
   const filteredOrders = orders.filter((o) => `${o.id} ${o.customer?.name || ''} ${o.status}`.toLowerCase().includes(search.toLowerCase()))
 
+  const visibleGroups = groups.filter((g) =>
+    `${g.code || ''} ${g.name || ''}`.toLowerCase().includes(search.toLowerCase()) ||
+    products.some((p) => (p.group_code || '') === g.code && `${p.code || ''} ${p.name || ''}`.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  const ungroupedProducts = filteredProducts.filter((p) => !p.group_code)
+
+  function productsInGroup(groupCode) {
+    return filteredProducts.filter((p) => (p.group_code || '') === groupCode)
+  }
+
+
   return (
     <div className="app">
       <div className="top">
@@ -669,8 +719,20 @@ export default function App() {
             <div className="card">
               <h2>1. Thông tin khách hàng</h2>
               <div className="form2">
-                <Field label="Tên khách hàng" value={customer.name} onChange={(v) => setCustomer({ ...customer, name: v })}/>
-                <Field label="Số điện thoại" value={customer.phone} onChange={(v) => setCustomer({ ...customer, phone: v })}/>
+                <Field label="Tên khách hàng" value={customer.name} onChange={(v) => setCustomer({ ...customer, name: v })} placeholder="Nhập tên để gợi ý khách cũ"/>
+                <Field label="Số điện thoại" value={customer.phone} onChange={(v) => setCustomer({ ...customer, phone: v })} placeholder="Nhập SĐT để gợi ý khách cũ"/>
+                {customerSuggestions.length > 0 && (
+                  <div className="suggestions full">
+                    <div className="suggest-title">Gợi ý khách hàng</div>
+                    {customerSuggestions.map((c) => (
+                      <button key={c.id} className="suggest-item" onClick={() => selectCustomerSuggestion(c)}>
+                        <b>{c.name || 'Khách chưa đặt tên'}</b>
+                        <span>{c.phone || 'Chưa có SĐT'}</span>
+                        <small>{c.address || ''}</small>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="full"><Field label="Địa chỉ" value={customer.address} onChange={(v) => setCustomer({ ...customer, address: v })}/></div>
                 <div className="field full">
                   <label>Ghi chú</label>
@@ -691,6 +753,29 @@ export default function App() {
                 <Field label="Số lượng" value={qty} onChange={setQty} type="number"/>
                 <Field label="Giá tùy chỉnh" value="" onChange={() => {}} placeholder="Để sau"/>
               </div>
+
+              {(groupSuggestions.length > 0 || productSuggestions.length > 0) && (
+                <div className="suggestions product-suggestions">
+                  {groupSuggestions.length > 0 && <div className="suggest-title">Gợi ý nhóm sản phẩm</div>}
+                  {groupSuggestions.map((g) => (
+                    <button key={g.id} className="suggest-item group" onClick={() => selectGroupSuggestion(g)}>
+                      <b>{g.code}</b>
+                      <span>{g.name}</span>
+                      <small>Nhập nhóm này rồi bấm thêm để đưa các mặt hàng trong nhóm vào hóa đơn</small>
+                    </button>
+                  ))}
+
+                  {productSuggestions.length > 0 && <div className="suggest-title">Gợi ý sản phẩm</div>}
+                  {productSuggestions.map((p) => (
+                    <button key={p.code} className="suggest-item" onClick={() => selectProductSuggestion(p)}>
+                      <b>{p.name}</b>
+                      <span>{p.code}</span>
+                      <small>{p.group_code ? `Nhóm: ${p.group_code}` : 'Chưa nhóm'} • {money(p.price)}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div className="actions">
                 <button className="btn yellow" onClick={addToCart}>Thêm vào hóa đơn</button>
                 <button className="btn" onClick={() => { setProductCode(''); setQty(1) }}>Xóa ô nhập</button>
@@ -751,21 +836,180 @@ export default function App() {
 
       {tab === 'products' && (
         <div className="card">
-          <h2>Quản lý sản phẩm VHLIGHTING</h2>
-          <div className="form3">
-            <Field label="Mã SP" value={newProduct.code} onChange={(v) => setNewProduct({ ...newProduct, code: v })}/>
-            <Field label="Tên sản phẩm" value={newProduct.name} onChange={(v) => setNewProduct({ ...newProduct, name: v })}/>
-            <Field label="ĐVT" value={newProduct.unit} onChange={(v) => setNewProduct({ ...newProduct, unit: v })}/>
-            <Field label="Giá" value={newProduct.price} onChange={(v) => setNewProduct({ ...newProduct, price: v })} type="number"/>
-            <Field label="Tồn kho" value={newProduct.stock} onChange={(v) => setNewProduct({ ...newProduct, stock: v })} type="number"/>
+          <h2>Quản lý danh mục sản phẩm VHLIGHTING</h2>
+
+          <div className="group-panel">
+            <h3>Tạo danh mục / nhóm sản phẩm</h3>
+            <div className="form3">
+              <Field label="Mã nhóm" value={newGroup.code} onChange={(v) => setNewGroup({ ...newGroup, code: v })} placeholder="VD: rncc"/>
+              <Field label="Tên nhóm" value={newGroup.name} onChange={(v) => setNewGroup({ ...newGroup, name: v })} placeholder="VD: Thanh ray nam châm"/>
+              <Field label="Ghi chú" value={newGroup.note} onChange={(v) => setNewGroup({ ...newGroup, note: v })} placeholder="VD: các mã hàng liên quan"/>
+            </div>
+            <div className="actions"><button className="btn blue" onClick={addGroup}>Tạo danh mục</button></div>
           </div>
-          <div className="actions"><button className="btn green" onClick={addProduct}>Thêm sản phẩm</button></div>
-          <input className="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm theo mã hoặc tên sản phẩm"/>
-          <div className="table-wrap" style={{ marginTop: 14 }}>
-            <table className="table">
-              <thead><tr><th>Mã</th><th>Tên</th><th>ĐVT</th><th>Giá</th><th>Tồn</th><th></th></tr></thead>
-              <tbody>{filteredProducts.map((p) => <tr key={p.code}><td><b>{p.code}</b></td><td>{p.name}</td><td>{p.unit}</td><td>{money(p.price)}</td><td>{p.stock}</td><td><button className="delete" onClick={() => removeProduct(p)}><Trash2 size={16}/></button></td></tr>)}</tbody>
-            </table>
+
+          <div className="product-form">
+            <h3>Thêm mã hàng vào danh mục</h3>
+            <div className="form-product no-stock-form">
+              <div className="field">
+                <label>Danh mục sản phẩm</label>
+                <select value={newProduct.group_code} onChange={(e) => setNewProduct({ ...newProduct, group_code: e.target.value })}>
+                  <option value="">Không chọn danh mục</option>
+                  {groups.map((g) => <option key={g.id} value={g.code}>{g.code} - {g.name}</option>)}
+                </select>
+              </div>
+              <Field label="Tên sản phẩm / mã hàng" value={newProduct.name} onChange={(v) => setNewProduct({ ...newProduct, name: v })} placeholder="VD: thanh ray, tán quang, đầu nối"/>
+              <Field label="Đơn vị tính" value={newProduct.unit} onChange={(v) => setNewProduct({ ...newProduct, unit: v })} placeholder="VD: cái / mét / bộ"/>
+              <Field label="Giá tiền" value={newProduct.price} onChange={(v) => setNewProduct({ ...newProduct, price: v })} type="number"/>
+
+              <div className="field full">
+                <label>Mã sản phẩm</label>
+                <input value={newProduct.code} onChange={(e) => setNewProduct({ ...newProduct, code: e.target.value })} placeholder="VD: rncc-thanh-ray hoặc bỏ trống để tự lấy theo tên"/>
+              </div>
+            </div>
+            <div className="actions"><button className="btn green" onClick={addProduct}>Thêm vào danh mục</button></div>
+          </div>
+
+          <input className="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm danh mục hoặc mã hàng"/>
+
+          <div className="category-list">
+            {visibleGroups.map((g) => {
+              const groupProducts = productsInGroup(g.code)
+              const isOpen = openGroupCode === g.code
+              return (
+                <div className="category-card" key={g.id}>
+                  <button className="category-head" onClick={() => setOpenGroupCode(isOpen ? '' : g.code)}>
+                    <div>
+                      <b>{g.name}</b>
+                      <span>Mã nhóm: {g.code} • {groupProducts.length} mã hàng</span>
+                    </div>
+                    <strong>{isOpen ? 'Thu gọn' : 'Mở danh mục'}</strong>
+                  </button>
+
+                  {isOpen && (
+                    <div className="category-body">
+                      {groupProducts.length ? (
+                        <div className="table-wrap">
+                          <table className="table products-table compact">
+                            <thead>
+                              <tr>
+                                <th>Tên sản phẩm</th>
+                                <th>Đơn vị tính</th>
+                                <th>Giá tiền</th>
+                                <th>Mã</th>
+                                <th>Thao tác</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {groupProducts.map((p) => (
+                                <tr key={p.code}>
+                                  {editingProductCode === p.code ? (
+                                    <>
+                                      <td><input className="cell-input" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}/></td>
+                                      <td><input className="cell-input" value={editingProduct.unit} onChange={(e) => setEditingProduct({ ...editingProduct, unit: e.target.value })}/></td>
+                                      <td><input className="cell-input" type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}/></td>
+                                      <td><input className="cell-input" value={editingProduct.code} onChange={(e) => setEditingProduct({ ...editingProduct, code: e.target.value })}/></td>
+                                      <td>
+                                        <div className="row-actions">
+                                          <button className="btn small green" onClick={() => saveEditProduct(p.code)}><Save size={14}/> Lưu</button>
+                                          <button className="btn small" onClick={() => setEditingProductCode(null)}><X size={14}/> Hủy</button>
+                                        </div>
+                                      </td>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <td>{p.name}</td>
+                                      <td>{p.unit}</td>
+                                      <td>{money(p.price)}</td>
+                                      <td><b>{p.code}</b></td>
+                                      <td>
+                                        <div className="row-actions">
+                                          <button className="btn small blue" onClick={() => startEditProduct(p)}><Edit3 size={14}/> Sửa</button>
+                                          <button className="btn small red" onClick={() => removeProduct(p)}><Trash2 size={14}/> Xóa</button>
+                                        </div>
+                                      </td>
+                                    </>
+                                  )}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="empty">Danh mục này chưa có mã hàng. Chọn danh mục ở form trên rồi thêm sản phẩm.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+
+            {ungroupedProducts.length > 0 && (
+              <div className="category-card">
+                <button className="category-head" onClick={() => setOpenGroupCode(openGroupCode === '__ungrouped' ? '' : '__ungrouped')}>
+                  <div>
+                    <b>Sản phẩm chưa gom nhóm</b>
+                    <span>{ungroupedProducts.length} mã hàng chưa thuộc danh mục nào</span>
+                  </div>
+                  <strong>{openGroupCode === '__ungrouped' ? 'Thu gọn' : 'Mở danh mục'}</strong>
+                </button>
+
+                {openGroupCode === '__ungrouped' && (
+                  <div className="category-body">
+                    <div className="table-wrap">
+                      <table className="table products-table compact">
+                        <thead>
+                          <tr>
+                            <th>Tên sản phẩm</th>
+                            <th>Đơn vị tính</th>
+                            <th>Giá tiền</th>
+                            <th>Mã</th>
+                            <th>Thao tác</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ungroupedProducts.map((p) => (
+                            <tr key={p.code}>
+                              {editingProductCode === p.code ? (
+                                <>
+                                  <td><input className="cell-input" value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}/></td>
+                                  <td><input className="cell-input" value={editingProduct.unit} onChange={(e) => setEditingProduct({ ...editingProduct, unit: e.target.value })}/></td>
+                                  <td><input className="cell-input" type="number" value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}/></td>
+                                  <td><input className="cell-input" value={editingProduct.code} onChange={(e) => setEditingProduct({ ...editingProduct, code: e.target.value })}/></td>
+                                  <td>
+                                    <div className="row-actions">
+                                      <button className="btn small green" onClick={() => saveEditProduct(p.code)}><Save size={14}/> Lưu</button>
+                                      <button className="btn small" onClick={() => setEditingProductCode(null)}><X size={14}/> Hủy</button>
+                                    </div>
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td>{p.name}</td>
+                                  <td>{p.unit}</td>
+                                  <td>{money(p.price)}</td>
+                                  <td><b>{p.code}</b></td>
+                                  <td>
+                                    <div className="row-actions">
+                                      <button className="btn small blue" onClick={() => startEditProduct(p)}><Edit3 size={14}/> Sửa</button>
+                                      <button className="btn small red" onClick={() => removeProduct(p)}><Trash2 size={14}/> Xóa</button>
+                                    </div>
+                                  </td>
+                                </>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!visibleGroups.length && !ungroupedProducts.length && (
+              <div className="empty">Chưa có danh mục hoặc sản phẩm phù hợp.</div>
+            )}
           </div>
         </div>
       )}

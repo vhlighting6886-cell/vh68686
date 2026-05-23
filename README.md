@@ -31,3 +31,21 @@ Sau đó mở web và bấm Ctrl + F5.
 - Bán hàng nhanh: nhập được mã sản phẩm, tên sản phẩm hoặc mã/tên nhóm sản phẩm.
 - Nếu nhập nhóm sản phẩm, hệ thống thêm toàn bộ sản phẩm thuộc nhóm đó vào hóa đơn.
 - Quản lý sản phẩm: nút `Sửa mã / tồn` rõ ràng hơn để sửa mã, tên, giá, tồn kho và nhóm.
+
+
+## Bản bỏ tồn kho
+- Giao diện quản lý sản phẩm chỉ còn: Nhóm sản phẩm, Tên sản phẩm, Đơn vị tính, Giá tiền.
+- Không kiểm tra tồn kho khi bán hàng.
+- Bán hàng nhanh vẫn nhập được nhóm sản phẩm hoặc tên sản phẩm.
+
+
+## Bản gợi ý bán hàng nhanh
+- Khi nhập tên/SĐT khách hàng, website tự hiện gợi ý khách cũ.
+- Khi nhập mã/tên/nhóm sản phẩm, website tự hiện gợi ý sản phẩm và nhóm.
+- Bấm vào gợi ý để chọn nhanh, sau đó bấm thêm vào hóa đơn.
+
+
+## Bản danh mục rút gọn
+- Quản lý sản phẩm hiển thị theo danh mục/nhóm.
+- Bấm vào từng danh mục để mở các mã hàng đã thêm vào trước.
+- Giúp gom các mã hàng liên quan chung vào một mục sản phẩm.

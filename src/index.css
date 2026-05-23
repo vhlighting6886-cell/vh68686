@@ -64,6 +64,32 @@ button,input,textarea{font-family:inherit}
 @media(max-width:1000px){.form-product{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.form-product{grid-template-columns:1fr}}
 
-.products-table th:last-child,.products-table td:last-child{min-width:190px}
+.products-table th:last-child,.products-table td:last-child{min-width:160px}
 .products-table .btn.small{white-space:nowrap}
 .quick-help{margin-top:8px;color:#64748b;font-size:13px}
+
+.no-stock-form{grid-template-columns:220px 1fr 140px 160px}
+.products-table{min-width:980px}
+@media(max-width:1000px){.no-stock-form{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.no-stock-form{grid-template-columns:1fr}}
+
+.suggestions{border:1px solid #dbeafe;background:#f8fbff;border-radius:18px;padding:10px;margin-top:2px;display:grid;gap:8px}
+.suggest-title{font-size:13px;font-weight:900;color:#1d4ed8;margin:2px 4px}
+.suggest-item{width:100%;border:1px solid #e2e8f0;background:white;border-radius:14px;padding:10px 12px;text-align:left;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+.suggest-item:hover{border-color:#2563eb;background:#eff6ff}
+.suggest-item b{font-size:14px;color:#0f172a}
+.suggest-item span{font-size:13px;color:#1d4ed8;font-weight:800}
+.suggest-item small{grid-column:1/-1;color:#64748b;font-size:12px;line-height:1.4}
+.suggest-item.group{border-color:#fde68a;background:#fffbeb}
+.suggest-item.group:hover{border-color:#f59e0b;background:#fef3c7}
+.product-suggestions{margin-top:12px}
+
+.category-list{display:grid;gap:12px;margin-top:16px}
+.category-card{border:1px solid #e2e8f0;border-radius:20px;background:white;overflow:hidden}
+.category-head{width:100%;border:0;background:#f8fafc;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:16px;text-align:left;cursor:pointer}
+.category-head:hover{background:#eff6ff}
+.category-head b{display:block;font-size:18px;color:#0f172a}
+.category-head span{display:block;margin-top:4px;color:#64748b;font-size:13px}
+.category-head strong{white-space:nowrap;background:#111827;color:white;border-radius:999px;padding:8px 12px;font-size:13px}
+.category-body{padding:14px}
+.products-table.compact{min-width:780px}
