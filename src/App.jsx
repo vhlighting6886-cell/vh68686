@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { ShoppingCart, Package, ClipboardList, Users, Trash2, FileText } from 'lucide-react'
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const SUPABASE_URL = 'https://jrkmhalznaxsskazyggt.supabase.co/rest/v1/'
+const SUPABASE_ANON_KEY = 'sb_publishable_VHNiWKy9mwV3rZAvLs85pQ_fKKFFQQh'
 const supabaseReady = SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 20
 const supabase = supabaseReady ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
 
