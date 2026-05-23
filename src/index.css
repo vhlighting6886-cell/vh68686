@@ -50,3 +50,16 @@ button,input,textarea{font-family:inherit}
 .edit-title{color:#b45309;font-size:16px}
 @media(max-width:1000px){.grid-sale,.summary{grid-template-columns:1fr}.tabs{grid-template-columns:1fr 1fr}.form3{grid-template-columns:1fr}.form2,.two{grid-template-columns:1fr}}
 @media(max-width:640px){.app{padding:14px}.tabs{grid-template-columns:1fr}.top{display:block}.order{display:block}}
+
+.group-panel,.product-form{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:16px;margin-bottom:16px}
+.group-panel h3,.product-form h3{margin:0 0 12px;font-size:18px}
+.group-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.group-chip{display:flex;align-items:center;gap:8px;border:1px solid #cbd5e1;background:white;border-radius:999px;padding:8px 10px;font-size:13px}
+.group-chip b{color:#1d4ed8}
+.form-product{display:grid;grid-template-columns:140px 1fr 90px 130px 120px 210px;gap:12px}
+.field select,.cell-input{width:100%;border:1px solid #e2e8f0;border-radius:12px;padding:10px 10px;font-size:14px;background:white;outline:none}
+.products-table{min-width:1050px}
+.row-actions{display:flex;align-items:center;gap:8px}
+.tag{display:inline-block;background:#dbeafe;color:#1d4ed8;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800}
+@media(max-width:1000px){.form-product{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.form-product{grid-template-columns:1fr}}

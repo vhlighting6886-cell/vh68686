@@ -258,15 +258,19 @@ export default function App() {
       created_at: new Date().toISOString(),
     }
 
+    const remain = Math.max(0, Number(data.total || 0) - Number(data.paid || 0))
+    const invoiceCode = data.id || `VH${Date.now()}`
+    const invoiceDate = new Date(data.created_at || Date.now()).toLocaleDateString('vi-VN')
+
     const rows = (data.items || []).map((item, index) => `
       <tr>
-        <td>${index + 1}</td>
-        <td>${item.code}</td>
-        <td>${item.name}</td>
-        <td>${item.unit || ''}</td>
-        <td style="text-align:right">${item.quantity}</td>
-        <td style="text-align:right">${money(item.price)}</td>
-        <td style="text-align:right">${money(Number(item.price || 0) * Number(item.quantity || 0))}</td>
+        <td class="center">${index + 1}</td>
+        <td>${item.code || ''}</td>
+        <td>${item.name || ''}</td>
+        <td class="center">${item.unit || ''}</td>
+        <td class="center">${item.quantity || 0}</td>
+        <td class="right">${money(item.price)}</td>
+        <td class="right bold">${money(Number(item.price || 0) * Number(item.quantity || 0))}</td>
       </tr>
     `).join('')
 
@@ -274,44 +278,247 @@ export default function App() {
       <html>
         <head>
           <meta charset="utf-8"/>
-          <title>${data.id}</title>
+          <title>${invoiceCode}</title>
           <style>
-            body{font-family:Arial;padding:28px;color:#0f172a}
-            h1{margin:0 0 8px}
-            .muted{color:#64748b;font-size:13px}
-            .box{border:1px solid #e2e8f0;border-radius:12px;padding:14px;margin:16px 0;line-height:1.7}
-            table{width:100%;border-collapse:collapse;margin-top:16px}
-            th,td{border-bottom:1px solid #e2e8f0;padding:10px;font-size:13px}
-            th{background:#f8fafc;text-align:left}
-            .line{display:flex;justify-content:flex-end;gap:40px;margin-top:8px}
-            .total{font-size:22px;font-weight:800}
-            .sign{display:flex;justify-content:space-between;margin-top:60px;text-align:center}
+            @page { size: A4; margin: 14mm; }
+            * { box-sizing: border-box; }
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              color: #111827;
+              margin: 0;
+              background: white;
+              font-size: 13px;
+            }
+            .invoice {
+              width: 100%;
+              min-height: 270mm;
+              padding: 0;
+              position: relative;
+            }
+            .top {
+              display: grid;
+              grid-template-columns: 1fr 220px;
+              gap: 20px;
+              align-items: start;
+            }
+            .brand {
+              font-size: 30px;
+              font-weight: 900;
+              letter-spacing: 1px;
+              margin: 0 0 6px;
+            }
+            .company {
+              line-height: 1.45;
+              font-size: 13px;
+            }
+            .meta {
+              line-height: 1.7;
+              font-size: 13px;
+              padding-top: 2px;
+            }
+            .meta b { font-weight: 900; }
+            .rule {
+              border-top: 3px solid #111827;
+              margin: 20px 0 14px;
+            }
+            .title {
+              text-align: center;
+              margin: 0;
+              font-size: 26px;
+              font-weight: 900;
+              letter-spacing: 1px;
+            }
+            .thanks {
+              text-align: center;
+              color: #6b7280;
+              margin-top: 6px;
+              margin-bottom: 18px;
+            }
+            .customer {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px 34px;
+              margin-bottom: 16px;
+              font-size: 14px;
+              font-weight: 700;
+            }
+            .customer .full { grid-column: 1 / -1; }
+            .dots {
+              display: inline-block;
+              min-width: 170px;
+              border-bottom: 1px dotted #111827;
+              font-weight: 400;
+              padding-left: 6px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 6px;
+              font-size: 12px;
+            }
+            th, td {
+              border: 1px solid #d1d5db;
+              padding: 9px 8px;
+              vertical-align: middle;
+            }
+            th {
+              background: #f3f4f6;
+              font-weight: 900;
+              text-align: center;
+            }
+            .center { text-align: center; }
+            .right { text-align: right; }
+            .bold { font-weight: 900; }
+            .bottom {
+              display: grid;
+              grid-template-columns: 1.1fr 1fr;
+              gap: 16px;
+              margin-top: 12px;
+              align-items: start;
+            }
+            .qrbox {
+              border: 1px solid #d1d5db;
+              border-radius: 5px;
+              padding: 12px;
+              min-height: 174px;
+            }
+            .qrtitle {
+              font-size: 14px;
+              font-weight: 900;
+              margin-bottom: 8px;
+            }
+            .qrcontent {
+              display: grid;
+              grid-template-columns: 128px 1fr;
+              gap: 14px;
+              align-items: center;
+            }
+            .qr {
+              width: 128px;
+              height: 128px;
+              border: 2px solid #6b7280;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #9ca3af;
+              font-size: 11px;
+            }
+            .bank {
+              line-height: 1.35;
+              font-size: 12px;
+            }
+            .bank b { font-weight: 900; }
+            .summaryBox {
+              border: 1px solid #d1d5db;
+              border-radius: 5px;
+              overflow: hidden;
+            }
+            .sumline {
+              display: grid;
+              grid-template-columns: 1fr 140px;
+              border-bottom: 1px solid #d1d5db;
+              min-height: 36px;
+              align-items: center;
+            }
+            .sumline span:first-child { padding-left: 10px; }
+            .sumline span:last-child { padding-right: 10px; text-align: right; font-weight: 900; }
+            .sumline.total {
+              border-bottom: 0;
+              min-height: 48px;
+              font-size: 21px;
+              font-weight: 900;
+            }
+            .footer {
+              position: absolute;
+              bottom: 24mm;
+              left: 0;
+              right: 0;
+              text-align: center;
+              font-size: 15px;
+              font-weight: 900;
+              color: #374151;
+            }
+            @media print {
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
           </style>
         </head>
         <body>
-          <h1>VHLIGHTING - ${data.status === 'sold' ? 'HÓA ĐƠN BÁN HÀNG' : 'HÓA ĐƠN TẠM TÍNH'}</h1>
-          <div class="muted">Mã đơn: ${data.id} • Ngày: ${new Date(data.created_at || Date.now()).toLocaleString('vi-VN')}</div>
-          <div class="box">
-            <b>Khách hàng:</b> ${data.customer?.name || ''}<br/>
-            <b>SĐT:</b> ${data.customer?.phone || ''}<br/>
-            <b>Địa chỉ:</b> ${data.customer?.address || ''}<br/>
-            <b>Ghi chú:</b> ${data.customer?.note || ''}
+          <div class="invoice">
+            <div class="top">
+              <div>
+                <h1 class="brand">VŨ HOÀNG LIGHTING</h1>
+                <div class="company">
+                  Cung cấp Ray Nam Châm - Nhôm Định Hình - Nguồn<br/>
+                  12V/24V - Đèn Trang Trí - Quạt Trần - LED 12V/24V/220V<br/>
+                  Hotline: 08779 333 62
+                </div>
+              </div>
+              <div class="meta">
+                <div><b>Mã hóa đơn:</b> ${invoiceCode}</div>
+                <div><b>Ngày:</b> ${invoiceDate}</div>
+                <div><b>Hình thức:</b> ${data.status === 'sold' ? 'Bán hàng' : 'Tạm tính'}</div>
+              </div>
+            </div>
+
+            <div class="rule"></div>
+
+            <h2 class="title">${data.status === 'sold' ? 'HÓA ĐƠN BÁN HÀNG' : 'HÓA ĐƠN TẠM TÍNH'}</h2>
+            <div class="thanks">Cảm ơn quý khách đã tin tưởng và mua hàng</div>
+
+            <div class="customer">
+              <div>Khách hàng: <span class="dots">${data.customer?.name || ''}</span></div>
+              <div>SĐT: <span class="dots">${data.customer?.phone || ''}</span></div>
+              <div>Địa chỉ: <span class="dots">${data.customer?.address || ''}</span></div>
+              <div class="full">Ghi chú: <span class="dots">${data.customer?.note || ''}</span></div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>ST<br/>T</th>
+                  <th>Mã</th>
+                  <th>Tên sản phẩm</th>
+                  <th>ĐVT</th>
+                  <th>SL</th>
+                  <th>Đơn giá</th>
+                  <th>Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+
+            <div class="bottom">
+              <div class="qrbox">
+                <div class="qrtitle">Quét QR thanh toán</div>
+                <div class="qrcontent">
+                  <div class="qr"></div>
+                  <div class="bank">
+                    <b>STK:</b><br/>577626198<br/><br/>
+                    <b>CTK:</b> HKD HOANG VU LIGHTING<br/>
+                    <b>Ngân hàng:</b> VP BANK
+                  </div>
+                </div>
+              </div>
+
+              <div class="summaryBox">
+                <div class="sumline"><span>Tạm tính</span><span>${money(data.total - Number(data.shipping_fee || 0) + Number(data.discount || 0))}</span></div>
+                <div class="sumline"><span>Chiết khấu</span><span>${money(data.discount)}</span></div>
+                <div class="sumline"><span>Phí vận chuyển</span><span>${money(data.shipping_fee)}</span></div>
+                <div class="sumline"><span>Đã thanh toán</span><span>${money(data.paid)}</span></div>
+                <div class="sumline"><span>Còn lại</span><span>${money(remain)}</span></div>
+                <div class="sumline total"><span>Tổng tiền</span><span>${money(data.total)}</span></div>
+              </div>
+            </div>
+
+            <div class="footer">VŨ HOÀNG LIGHTING - UY TÍN TẠO NIỀM TIN</div>
           </div>
-          <table>
-            <thead>
-              <tr><th>STT</th><th>Mã SP</th><th>Tên sản phẩm</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <div class="line"><span>Chiết khấu</span><b>${money(data.discount)}</b></div>
-          <div class="line"><span>Phí vận chuyển</span><b>${money(data.shipping_fee)}</b></div>
-          <div class="line"><span>Đã thanh toán</span><b>${money(data.paid)}</b></div>
-          <div class="line total"><span>Tổng tiền</span><b>${money(data.total)}</b></div>
-          <div class="sign">
-            <div><b>Khách hàng</b><br/><span class="muted">Ký, ghi rõ họ tên</span></div>
-            <div><b>Người bán</b><br/><span class="muted">Ký, ghi rõ họ tên</span></div>
-          </div>
-          <script>window.print()</script>
+
+          <script>
+            window.onload = function() {
+              window.print()
+            }
+          </script>
         </body>
       </html>`
 

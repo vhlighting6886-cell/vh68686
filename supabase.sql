@@ -59,3 +59,28 @@ values
 ('VHL-LED-002','VHL-LED-002','Đèn LED panel 18W','cái',185000,80),
 ('VHL-DAY-001','VHL-DAY-001','Dây LED 12V','mét',42000,300)
 on conflict (id) do nothing;
+alter table products add column if not exists group_code text;
+
+create table if not exists product_groups (
+  id text primary key,
+  code text unique not null,
+  name text not null,
+  note text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table product_groups enable row level security;
+
+drop policy if exists "public read product groups" on product_groups;
+drop policy if exists "public write product groups" on product_groups;
+
+create policy "public read product groups" on product_groups for select using (true);
+create policy "public write product groups" on product_groups for all using (true) with check (true);
+
+insert into product_groups (id, code, name, note)
+values
+('rncc','rncc','RNCC','Nhóm ray nam châm / phụ kiện liên quan'),
+('tan-quang','tan-quang','Tán quang','Nhóm sản phẩm tán quang'),
+('thanh-ray-nam-cham','thanh-ray-nam-cham','Thanh ray nam châm','Nhóm thanh ray nam châm')
+on conflict (id) do nothing;

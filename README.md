@@ -18,3 +18,10 @@ và Publishable key vào `src/App.jsx`.
 
 Vào Supabase > SQL Editor, chạy lại file `supabase.sql`.
 Sau đó mở web và bấm Ctrl + F5.
+
+
+## Bản tối ưu quản lý sản phẩm
+- Có nút Sửa để sửa mã, tên, đơn vị tính, giá, tồn kho.
+- Có bảng `product_groups` để tạo nhóm sản phẩm.
+- Sản phẩm có cột `group_code` để gán vào nhóm như `rncc`, `tan-quang`, `thanh-ray-nam-cham`.
+- Cần chạy lại file `supabase.sql` trong Supabase SQL Editor để thêm bảng nhóm.
