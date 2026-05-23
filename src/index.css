@@ -63,3 +63,7 @@ button,input,textarea{font-family:inherit}
 .tag{display:inline-block;background:#dbeafe;color:#1d4ed8;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800}
 @media(max-width:1000px){.form-product{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.form-product{grid-template-columns:1fr}}
+
+.products-table th:last-child,.products-table td:last-child{min-width:190px}
+.products-table .btn.small{white-space:nowrap}
+.quick-help{margin-top:8px;color:#64748b;font-size:13px}

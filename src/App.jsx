@@ -154,19 +154,60 @@ export default function App() {
   }
 
   function addToCart() {
-    const product = products.find((p) => p.code.trim().toLowerCase() === productCode.trim().toLowerCase())
+    const keyword = productCode.trim().toLowerCase()
     const quantity = Number(qty)
 
-    if (!product) return show('Không tìm thấy mã sản phẩm')
+    if (!keyword) return show('Nhập mã sản phẩm, tên sản phẩm hoặc nhóm sản phẩm')
     if (!quantity || quantity <= 0) return show('Số lượng phải lớn hơn 0')
-    if (Number(product.stock || 0) < quantity) return show('Tồn kho không đủ')
+
+    const group = groups.find((g) =>
+      g.code.toLowerCase() === keyword ||
+      g.name.toLowerCase() === keyword
+    )
+
+    if (group) {
+      const groupProducts = products.filter((p) => (p.group_code || '').toLowerCase() === group.code.toLowerCase())
+      if (!groupProducts.length) return show('Nhóm này chưa có sản phẩm')
+
+      const notEnough = groupProducts.find((p) => Number(p.stock || 0) < quantity)
+      if (notEnough) return show(`Sản phẩm ${notEnough.code} không đủ tồn kho`)
+
+      setCart((old) => {
+        let next = [...old]
+        groupProducts.forEach((product) => {
+          const exists = next.find((item) => item.code === product.code)
+          if (exists) {
+            next = next.map((item) => item.code === product.code ? { ...item, quantity: Number(item.quantity) + quantity } : item)
+          } else {
+            next.push({ ...product, quantity })
+          }
+        })
+        return next
+      })
+
+      setProductCode('')
+      setQty(1)
+      show(`Đã thêm nhóm ${group.code} vào hóa đơn`)
+      return
+    }
+
+    let matched = products.find((p) => p.code.trim().toLowerCase() === keyword)
+
+    if (!matched) {
+      const byName = products.filter((p) => p.name.toLowerCase().includes(keyword))
+      if (byName.length === 1) matched = byName[0]
+      if (byName.length > 1) return show('Có nhiều sản phẩm trùng tên. Vui lòng nhập mã chính xác hơn.')
+    }
+
+    if (!matched) return show('Không tìm thấy mã, tên hoặc nhóm sản phẩm')
+    if (Number(matched.stock || 0) < quantity) return show('Tồn kho không đủ')
 
     setCart((old) => {
-      const exists = old.find((item) => item.code === product.code)
+      const exists = old.find((item) => item.code === matched.code)
       if (exists) {
-        return old.map((item) => item.code === product.code ? { ...item, quantity: Number(item.quantity) + quantity } : item)
+        return old.map((item) => item.code === matched.code ? { ...item, quantity: Number(item.quantity) + quantity } : item)
       }
-      return [...old, { ...product, quantity }]
+      return [...old, { ...matched, quantity }]
     })
 
     setProductCode('')
@@ -644,9 +685,9 @@ export default function App() {
 
             <div className="card">
               <h2>2. Nhập mã sản phẩm</h2>
-              <div className="hint"><b>Online:</b> sản phẩm lấy từ Supabase. Nếu database lỗi, app vẫn lưu tạm trên trình duyệt.</div>
+              <div className="hint"><b>Online:</b> có thể nhập mã sản phẩm, tên sản phẩm hoặc nhóm sản phẩm. Ví dụ nhập <b>rncc</b> để thêm các mặt hàng trong nhóm rncc vào hóa đơn.</div>
               <div className="form3">
-                <Field label="Nhập mã sản phẩm" value={productCode} onChange={setProductCode} placeholder="VD: VHL-LED-001"/>
+                <Field label="Nhập mã / tên / nhóm sản phẩm" value={productCode} onChange={setProductCode} placeholder="VD: VHL-LED-001 / thanh ray / rncc"/>
                 <Field label="Số lượng" value={qty} onChange={setQty} type="number"/>
                 <Field label="Giá tùy chỉnh" value="" onChange={() => {}} placeholder="Để sau"/>
               </div>

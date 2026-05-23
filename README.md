@@ -25,3 +25,9 @@ Sau đó mở web và bấm Ctrl + F5.
 - Có bảng `product_groups` để tạo nhóm sản phẩm.
 - Sản phẩm có cột `group_code` để gán vào nhóm như `rncc`, `tan-quang`, `thanh-ray-nam-cham`.
 - Cần chạy lại file `supabase.sql` trong Supabase SQL Editor để thêm bảng nhóm.
+
+
+## Bản sửa tiếp
+- Bán hàng nhanh: nhập được mã sản phẩm, tên sản phẩm hoặc mã/tên nhóm sản phẩm.
+- Nếu nhập nhóm sản phẩm, hệ thống thêm toàn bộ sản phẩm thuộc nhóm đó vào hóa đơn.
+- Quản lý sản phẩm: nút `Sửa mã / tồn` rõ ràng hơn để sửa mã, tên, giá, tồn kho và nhóm.
